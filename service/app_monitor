@@ -1,0 +1,104 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:                 Applications Monitor 
+# Required-Start:           $python
+# Required-Stop:            $python
+# Short-Description:        Start and stop Application Monitor service.
+# Description:              -
+# Date-Creation:            -
+# Date-Last-Modification:   -
+# Author:                   Evgeny Fedoruk
+### END INIT INFO
+
+# Variables
+PGREP=/usr/bin/pgrep
+PYTHON=/usr/bin/python
+APP_MONITOR_PATH=/opt/radware/app_monitor
+ZERO=0
+
+# Start the Applications Monitor
+start() {
+    echo "Starting Applications Monitor..."
+    #Verify if the service is running
+    $PGREP -f monitor.py > /dev/null
+    VERIFIER=$?
+    if [ $ZERO = $VERIFIER ]
+    then
+        echo "The service is already running"
+    else
+        $PYTHON $APP_MONITOR_PATH/monitor.py > /dev/null 2>&1 &
+        sleep 3 
+        $PGREP -f monitor.py  > /dev/null
+        VERIFIER=$?
+        if [ $ZERO = $VERIFIER ]
+        then
+            echo "Service was successfully started"
+        else
+            echo "Failed to start service"
+        fi
+    fi
+    echo
+}
+
+# Stop the Applications Monitor
+stop() {
+    echo "Stopping Applications Monitor..."
+    #Verify if the service is running
+    $PGREP -f monitor.py > /dev/null
+    VERIFIER=$?
+    if [ $ZERO = $VERIFIER ]
+    then
+        kill -9 $($PGREP -f monitor)
+        #Sleep time before the service verification
+        sleep 1
+        #Verify if the service is running
+        $PGREP -f monitor.py  > /dev/null
+        VERIFIER=$?
+        if [ $ZERO = $VERIFIER ]
+        then
+            echo "Failed to stop service"
+        else
+            echo "Service was successfully stopped"
+        fi
+    else
+        echo "The service is already stopped"
+    fi
+    echo
+}
+
+# Verify the status of Applications Monitor
+status() {
+    echo "Checking status of Applications Monitor..."
+    #Verify if the service is running
+    $PGREP -f monitor.py > /dev/null
+    VERIFIER=$?
+    if [ $ZERO = $VERIFIER ]
+    then
+        echo "Service is running"
+    else
+        echo "Service is stopped"
+    fi
+    echo
+}
+
+# Main logic
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status
+        ;;
+    restart)
+        stop
+        start
+        ;;
+  *)
+    echo $"Usage: $0 {start|stop|status|restart}"
+    exit 1
+esac
+exit 0
